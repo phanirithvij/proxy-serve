@@ -2,13 +2,15 @@ import signal, sys
 import socket
 import threading
 from config import config
+from cacher import do_caching_or_request
+import requests
 
 class Server:
     def __init__(self, config):
         # Shutdown on Ctrl+C
         signal.signal(signal.SIGINT, self.shutdown)
 
-        self.config = config   
+        self.config = config
 
         # Create a TCP socket
         self.serverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -21,7 +23,6 @@ class Server:
 
         self.serverSocket.listen(10) # become a server socket
         self._clients = []
-
 
     def shutdown(self, signum, frame):
         """ Handle the exiting server. Clean all traces """
@@ -68,6 +69,12 @@ class Server:
         if (port_pos==-1 or webserver_pos < port_pos):
             # default port
             port = 80
+            print(url[:http_pos])
+            if (url[:http_pos] == "http"):
+                port = 80
+            elif (url[:http_pos] == "https"):
+                print("HTTTPPPPSSS")
+                port = 443
             webserver = temp[:webserver_pos]
 
         else: # specific port
@@ -85,7 +92,7 @@ class Server:
         while True:
             # receive data from web server
             data = s.recv(config['MAX_REQUEST_LEN'])
-
+            print("while true")
             if (len(data) > 0):
                 print('sending to client', len(data))
                 clientSocket.send(data) # send to browser/client
