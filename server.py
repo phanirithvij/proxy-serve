@@ -90,12 +90,13 @@ class Server:
 
         if urlip in self.blocked :
             clientSocket.sendall("""\
-                HTTP/1.1 200 OK
-                Content-Type text/html
-                
-                Forbidden""".encode()
-            ) # send to browser/client
-            
+HTTP/1.1 403 Unauthorized
+Content-Type text/html
+
+<p>403 Forbidden</p>
+""".encode()
+) # send to browser/client
+
             print ('lsi is blocked')
 
             clientSocket.close()
