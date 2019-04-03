@@ -5,8 +5,6 @@ from config import config
 from cacher import do_caching_or_request
 from utils import get_black_list
 
-import requests
-
 
 class Server:
     def __init__(self, config):
@@ -26,6 +24,7 @@ class Server:
 
         self.serverSocket.listen(100) # become a server socket
         self._clients = []
+        self.blocked = get_black_list()
 
     def shutdown(self, signum, frame):
         """ Handle the exiting server. Clean all traces """
@@ -85,34 +84,46 @@ class Server:
             print("No https")
             return
 
+        urlip = socket.gethostbyname(webserver)   
         print("HOST ",socket.gethostbyname(webserver))
-
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
-        s.settimeout(config['CONNECTION_TIMEOUT'])
-        try:
-            s.connect((webserver, port))
-        except ConnectionRefusedError as _e:
-            print("refused ", _e)
-            clientSocket.send("""\
-                HTTP/1.0 404 Not Found
+        
+        if urlip in self.blocked :
+            clientSocket.send(b"""\
+                HTTP/1.0 403 Unauthorized
                 Content-Type text/html
-
-                {}\
-                """.format(str(_e)).encode()
+                
+                Forbidden"""
             ) # send to browser/client
+            
+            print ('lsi is blocked')
+        else :
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
+            s.settimeout(config['CONNECTION_TIMEOUT'])
+            try:
+                s.connect((webserver, port))
+            except ConnectionRefusedError as _e:
+                print("refused ", _e)
+                clientSocket.send("""\
+                    HTTP/1.0 404 Not Found
+                    Content-Type text/html
 
-            return
+                    {}\
+                    """.format(str(_e)).encode()
+                ) # send to browser/client
 
-        s.sendall(request)
-        while True:
-            # receive data from web server
-            data = s.recv(config['MAX_REQUEST_LEN'])
-            print("while true")
-            if (len(data) > 0):
-                print('sending to client', data)
-                clientSocket.send(data) # send to browser/client
-            else:
-                break
+                return
+
+            s.sendall(request)
+            while True:
+                # receive data from web server
+                data = s.recv(config['MAX_REQUEST_LEN'])
+                print("while true")
+                if (len(data) > 0):
+                    print('sending to client', data)
+                    clientSocket.send(data) # send to browser/client
+                else:
+                    break
+
 
     def run(self):
         print(f"starting the server on {self.config['BIND_PORT']}...")
