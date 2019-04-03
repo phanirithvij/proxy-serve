@@ -8,6 +8,7 @@ def get_black_list():
         x = file.readlines()
     x = [x.strip() for x in x]
     ls = [cidr_to_list(cidr) for cidr in x]
+    ls = [item for sublist in ls for item in sublist]
     return ls
 
 def get_user_passes():
@@ -22,4 +23,3 @@ if __name__ == "__main__":
     print(get_black_list())
     print(get_user_passes())
     # print(cidr_to_list(cidr))
-
