@@ -115,7 +115,7 @@ class Server:
                     """.format(str(_e)).encode()
                 ) # send to browser/client
 
-                return
+                clientSocket.close()
 
             s.sendall(request)
             while True:
