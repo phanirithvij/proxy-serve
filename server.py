@@ -108,7 +108,7 @@ class Server:
             except ConnectionRefusedError as _e:
                 print("refused ", _e)
                 clientSocket.send("""\
-                    HTTP/1.0 404 Not Found
+                    HTTP/1.1 404 Not Found
                     Content-Type text/html
 
                     {}\
