@@ -34,14 +34,14 @@ def timeConsumer(req):
     print('...done')
     return req
 
-def do_caching_or_request(reqfunc, url):
+def do_caching_or_request(reqfunc, url, container=container, caches=caches, data=None):
     # while True:
         # url = random.choice(urls)
     resp = None
     notincache = False
-    if (len(caches) == 4):
+    if (len(caches) == 5):
         print("caches length > 3")
-        delet = random.choice(caches.keys())
+        delet = random.choice(list(caches.keys()))
         print(f"deleting a one of them randomly {delet}") # lru can be used
         del caches[delet]
 
@@ -49,10 +49,11 @@ def do_caching_or_request(reqfunc, url):
         print("trying to find resp in caches")
         resp = caches[url].getdata() # if fails it means it's not cached
         print("found data")
-    except Exception as _e:
-        print("Failed => send request")
+    except KeyError as _e:
+        print("not found sending request")
         notincache = True # i.e. isnotincache = true
-        resp = reqfunc(url) # send request as not in cache
+        resp = reqfunc(url, data) # send request as not in cache
+        # print("got data", resp)
 
     try:
         if (notincache): # if not in cache
@@ -60,7 +61,7 @@ def do_caching_or_request(reqfunc, url):
             curr.count += 1
             curr.time.append(time()) # appending the last accessed time
             if (
-                curr.count > 3 and\
+                curr.count > 2 and\
                 (curr.time[-1] - curr.time[-4]) < 5*60 # less than 5min
             ):
                 print("del the first time")
@@ -77,7 +78,7 @@ def do_caching_or_request(reqfunc, url):
         container[url].count += 1
         container[url].time.append(time())
 
-    return resp
+    return resp, not notincache
 
 if __name__ == "__main__":
     urls = ['lsak', 'saa', 'das']

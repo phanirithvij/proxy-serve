@@ -8,13 +8,27 @@ A http-server made using socket programming in python.
 python3 server.py
 ```
 
-## to run the cache module
+Then configure the system proxy settings pointing to the `localhost, 5000`
+
+Visit these for example
+
+- [http://csg.iiit.ac.in/](http://csg.iiit.ac.in/)
+- [http://dsac.iiit.ac.in/](http://dsac.iiit.ac.in/)
+- [http://lsi.iiit.ac.in/](http://lsi.iiit.ac.in/) (Black listed) (10.4.16.178)
+
+Implemented:
+- black listing in CIDR format
+- server side caching within 5min and max memory of 3 cached requests
+- threaded proxy server
+- authentication
+
+### Authentication
+
+Change username and password
 
 ```shell
-python3 cacher.py
+curl --request GET -u username:password --proxy 127.0.0.1:5000 http://lsi.iiit.ac.in
 ```
-
-Then configure the system proxy settings pointing to the `localhost, 5000`
 
 <!-- ## Browser side testing -->
 
