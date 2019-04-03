@@ -43,10 +43,11 @@ class Server:
 
         self._clients.append(clientSocket)
 
-        print(request.decode('utf-8'))
+        # print(request.decode('utf-8'))
 
         # parse the first line
-        first_line = request.decode('utf-8').split('\n')[0]
+        first_line = request.split(b'\n')[0]
+        first_line = first_line.decode('utf-8')
 
         print("first line", first_line)
 
@@ -76,7 +77,7 @@ class Server:
         else: # specific port
             port = int((temp[(port_pos+1):])[:webserver_pos-port_pos-1])
             webserver = temp[:port_pos]
-    
+
         print(f"trying to request {webserver}:{port}")
         print(webserver)
 
@@ -86,16 +87,19 @@ class Server:
 
         urlip = socket.gethostbyname(webserver)   
         print("HOST ",socket.gethostbyname(webserver))
-        
+
         if urlip in self.blocked :
-            clientSocket.send(b"""\
-                HTTP/1.0 403 Unauthorized
+            clientSocket.sendall(b"""\
+                HTTP/1.1 200 OK
                 Content-Type text/html
                 
                 Forbidden"""
             ) # send to browser/client
             
             print ('lsi is blocked')
+
+            clientSocket.close()
+
         else :
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
             s.settimeout(config['CONNECTION_TIMEOUT'])
@@ -122,8 +126,7 @@ class Server:
                     print('sending to client', data)
                     clientSocket.send(data) # send to browser/client
                 else:
-                    break
-
+                    clientSocket.close()
 
     def run(self):
         print(f"starting the server on {self.config['BIND_PORT']}...")
