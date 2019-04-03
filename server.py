@@ -3,7 +3,10 @@ import socket
 import threading
 from config import config
 from cacher import do_caching_or_request
+from utils import get_black_list
+
 import requests
+
 
 class Server:
     def __init__(self, config):
@@ -21,7 +24,7 @@ class Server:
         # bind the socket to a public host, and a port 
         self.serverSocket.bind((config['HOST_NAME'], config['BIND_PORT']))
 
-        self.serverSocket.listen(10) # become a server socket
+        self.serverSocket.listen(100) # become a server socket
         self._clients = []
 
     def shutdown(self, signum, frame):
@@ -69,12 +72,6 @@ class Server:
         if (port_pos==-1 or webserver_pos < port_pos):
             # default port
             port = 80
-            print(url[:http_pos])
-            if (url[:http_pos] == "http"):
-                port = 80
-            elif (url[:http_pos] == "https"):
-                print("HTTTPPPPSSS")
-                port = 443
             webserver = temp[:webserver_pos]
 
         else: # specific port
@@ -84,17 +81,35 @@ class Server:
         print(f"trying to request {webserver}:{port}")
         print(webserver)
 
+        if port == 443:
+            print("No https")
+            return
+
+        print("HOST ",socket.gethostbyname(webserver))
+
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         s.settimeout(config['CONNECTION_TIMEOUT'])
-        s.connect((webserver, port))
-        s.sendall(request)
+        try:
+            s.connect((webserver, port))
+        except ConnectionRefusedError as _e:
+            print("refused ", _e)
+            clientSocket.send("""\
+                HTTP/1.0 404 Not Found
+                Content-Type text/html
 
+                {}\
+                """.format(str(_e)).encode()
+            ) # send to browser/client
+
+            return
+
+        s.sendall(request)
         while True:
             # receive data from web server
             data = s.recv(config['MAX_REQUEST_LEN'])
             print("while true")
             if (len(data) > 0):
-                print('sending to client', len(data))
+                print('sending to client', data)
                 clientSocket.send(data) # send to browser/client
             else:
                 break
