@@ -15,8 +15,7 @@ def get_user_passes():
     with open('accounts.txt') as file:
         x = file.readlines()
     x = [x.strip() for x in x]
-    all_ = [x.split(':') for x in x]
-    return all_
+    return x
 
 if __name__ == "__main__":
     # for cidr in 

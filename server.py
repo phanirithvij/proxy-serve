@@ -1,10 +1,9 @@
 import signal, sys
-import socket
+import socket, base64
 import threading
 from config import config
 from cacher import caches, do_caching_or_request
-from utils import get_black_list
-
+from utils import get_black_list, get_user_passes
 
 class Server:
     def __init__(self, config):
@@ -51,7 +50,8 @@ class Server:
         first_line = request.split(b'\n')[0]
         first_line = first_line.decode('utf-8')
 
-        print("first line", first_line)
+        # print("first line", first_line)
+        print(request)
 
         # get url
         try:
@@ -95,12 +95,30 @@ class Server:
         urlip = socket.gethostbyname(webserver)
         print("HOST ",socket.gethostbyname(webserver))
 
-        if urlip in self.blocked :
-            clientSocket.sendall(self.config['403']) # send 403 to browser/client
-            print ('it\'s blocked')
-            clientSocket.close()
+        proceed = False
 
-        else :
+        if urlip in self.blocked :
+            autheni = False
+            print(request.decode('utf-8'))
+            for line in request.decode('utf-8').split('\n'):
+                print(line)
+                if "Authorization" in line:
+                    auth_line = line
+            print(auth_line)
+            if (auth_line):
+                auth_b64 = auth_line.split()[2]
+                if base64.b64decode(auth_b64).decode('utf-8') in get_user_passes():
+                    autheni = True
+            else:
+                auth_b64 = None
+
+            if not autheni:
+                clientSocket.sendall(self.config['403']) # send 403 to browser/client
+                print ('it\'s blocked')
+                clientSocket.close()
+            else :
+                proceed = True
+        if urlip not in self.blocked or proceed :
             
             resp, cached = do_caching_or_request(
                 self.perform_request,
