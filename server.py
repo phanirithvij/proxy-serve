@@ -85,7 +85,7 @@ class Server:
             print("No https")
             return
 
-        urlip = socket.gethostbyname(webserver)   
+        urlip = socket.gethostbyname(webserver)
         print("HOST ",socket.gethostbyname(webserver))
 
         if urlip in self.blocked :
