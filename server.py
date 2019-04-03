@@ -89,11 +89,11 @@ class Server:
         print("HOST ",socket.gethostbyname(webserver))
 
         if urlip in self.blocked :
-            clientSocket.sendall(b"""\
+            clientSocket.sendall("""\
                 HTTP/1.1 200 OK
                 Content-Type text/html
                 
-                Forbidden"""
+                Forbidden""".encode()
             ) # send to browser/client
             
             print ('lsi is blocked')
@@ -107,7 +107,7 @@ class Server:
                 s.connect((webserver, port))
             except ConnectionRefusedError as _e:
                 print("refused ", _e)
-                clientSocket.send("""\
+                clientSocket.sendall("""\
                     HTTP/1.1 404 Not Found
                     Content-Type text/html
 
