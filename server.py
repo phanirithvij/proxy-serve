@@ -121,7 +121,6 @@ class Server:
             while True:
                 # receive data from web server
                 data = s.recv(config['MAX_REQUEST_LEN'])
-                print("while true")
                 if (len(data) > 0):
                     print('sending to client', data)
                     clientSocket.send(data) # send to browser/client
